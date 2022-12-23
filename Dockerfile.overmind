@@ -1,0 +1,38 @@
+FROM debian:11 as builder
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN \
+    apt-get update \
+    && apt-get install -y --no-install-recommends \
+        wget gzip ca-certificates 
+
+RUN \
+    wget -c https://github.com/DarthSim/overmind/releases/download/v2.3.0/overmind-v2.3.0-linux-amd64.gz \
+    && gunzip overmind-v2.3.0-linux-amd64.gz \
+    && chmod +x overmind-v2.3.0-linux-amd64 \
+    && mv overmind-v2.3.0-linux-amd64 /usr/local/bin/overmind
+
+
+# FROM debian:11
+FROM python:3.9-slim-buster
+
+RUN \
+    apt-get update \
+    && apt-get install -y --no-install-recommends \
+        vim procps tmux \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* \
+    && pip3 install flask
+
+COPY --from=builder /usr/local/bin/overmind /usr/local/bin/overmind
+
+WORKDIR /app
+
+ADD app /app
+ADD Procfile /app/Procfile
+ADD bootstrap /app/bootstrap
+
+CMD ["bash", "bootstrap"]
+
+
+
+
