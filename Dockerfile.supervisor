@@ -1,0 +1,20 @@
+# FROM debian:11
+FROM python:3.9-slim-buster
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN \
+    apt-get update \
+    && apt-get install -y --no-install-recommends \
+        supervisor vim procps \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* \
+    && pip3 install flask
+
+ADD app /app
+
+WORKDIR /app
+
+ADD supervisord.conf /etc/supervisord.conf
+
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+
